@@ -44,3 +44,5 @@ Run Flask app:
 ## Email valication
 
 `pip install email-validator`
+
+`flask db migrate -m "new fields in user model"`

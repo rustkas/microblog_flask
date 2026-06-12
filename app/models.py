@@ -1,6 +1,7 @@
 """Database models for the Flask application."""
 from datetime import datetime, timezone
 from typing import Optional
+from hashlib import md5
 
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,6 +20,9 @@ class User(UserMixin, db.Model):
     username: so.Mapped[str] = so.mapped_column(sa.String(64), index=True, unique=True)
     email: so.Mapped[str] = so.mapped_column(sa.String(120), index=True, unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256), nullable=True)
+    about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
+    last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
+        default=lambda: datetime.now(timezone.utc))
 
     # Используем back_populates для связи
     posts: so.WriteOnlyMapped["Post"] = so.relationship(
@@ -29,13 +33,18 @@ class User(UserMixin, db.Model):
         return f"<User {self.username}>"
 
     def set_password(self, password):
+        """Set the user's password by hashing it."""
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
+        """Check if the provided password is correct."""
         if self.password_hash is None:
             return False
         return check_password_hash(self.password_hash, password)
-
+    def avatar(self, size):
+        """Generate a Gravatar URL for the user's avatar."""
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
 class Post(db.Model):
     """Model representing a post in the Flask application."""
