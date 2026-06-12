@@ -36,3 +36,11 @@ Run Flask app:
 ## Extra info
 - [Miguel's blog](https://blog.miguelgrinberg.com/)
 - [Ru Translation](https://habr.com/ru/articles/804245/)
+
+## Loggining
+
+` pip install flask-login`
+
+## Email valication
+
+`pip install email-validator`
