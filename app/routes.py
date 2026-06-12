@@ -36,13 +36,13 @@ def login():
         return redirect(url_for("index"))
     form = LoginForm()
     if form.validate_on_submit():
-        user = db.session.scalar(
+        user_item = db.session.scalar(
             sa.select(User).where(User.username == form.username.data)
         )
-        if user is None or not user.check_password(form.password.data):
+        if user_item is None or not user_item.check_password(form.password.data):
             flash("Invalid username or password")
             return redirect(url_for("login"))
-        login_user(user, remember=form.remember_me.data)
+        login_user(user_item, remember=form.remember_me.data)
         next_page = request.args.get("next")
         if not next_page or urlsplit(next_page).netloc != "":
             next_page = url_for("index")
@@ -64,9 +64,9 @@ def register():
         return redirect(url_for("index"))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)  # type: ignore
-        user.set_password(form.password.data)
-        db.session.add(user)
+        user_item = User(username=form.username.data, email=form.email.data)  # type: ignore
+        user_item.set_password(form.password.data)
+        db.session.add(user_item)
         db.session.commit()
         flash("Congratulations, you are now a registered user!")
         return redirect(url_for("login"))
@@ -87,6 +87,7 @@ def user(username):
 
 @app.before_request
 def before_request():
+    """Update the last seen time for the current user before each request."""
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
@@ -96,7 +97,7 @@ def before_request():
 @login_required
 def edit_profile():
     """Handle editing of user profile."""
-    form = EditProfileForm()
+    form = EditProfileForm(current_user.username)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data

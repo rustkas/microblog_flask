@@ -1,7 +1,7 @@
 """Forms for user login and registration."""
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField,TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length
 
 
@@ -42,8 +42,22 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError("Please use a different email address.")
 
+
 class EditProfileForm(FlaskForm):
     """Form for editing user profile."""
-    username = StringField('Username', validators=[DataRequired()])
-    about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
-    submit = SubmitField('Submit')
+    username = StringField("Username", validators=[DataRequired()])
+    about_me = TextAreaField("About me", validators=[Length(min=0, max=140)])
+    submit = SubmitField("Submit")
+
+    def __init__(self, original_username, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.original_username = original_username
+
+    def validate_username(self, username):
+        """Validate that the new username is not already taken by another user."""
+        if username.data != self.original_username:
+            user = db.session.scalar(
+                sa.select(User).where(User.username == self.username.data)
+            )
+            if user is not None:
+                raise ValidationError("Please use a different username.")

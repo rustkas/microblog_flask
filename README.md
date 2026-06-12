@@ -46,3 +46,6 @@ Run Flask app:
 `pip install email-validator`
 
 `flask db migrate -m "new fields in user model"`
+
+## Влкючить режим отладки Flask
+`export FLASK_DEBUG=1`
